@@ -11,13 +11,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Alias middleware tenant (multi-institusi)
+        // Alias middleware
         $middleware->alias([
-            'tenant' => \App\Http\Middleware\EnsureTenantAccess::class,
-            'role'   => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'tenant'             => \App\Http\Middleware\EnsureTenantAccess::class,
+            'set_tenant'         => \App\Http\Middleware\SetActiveTenant::class,
+            'role'               => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission'         => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
+
+        // Jalankan SetActiveTenant di semua request web yang sudah login
+        $middleware->appendToGroup('web', \App\Http\Middleware\SetActiveTenant::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
