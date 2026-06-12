@@ -39,7 +39,7 @@
            class="fixed inset-y-0 left-0 z-30 w-64 flex flex-col bg-gradient-to-b from-blue-950 via-blue-900 to-indigo-950 shadow-2xl
                   transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto">
 
-        {{-- Logo --}}
+        {{-- Logo / Nama Lembaga --}}
         <div class="flex items-center gap-3 h-16 px-5 border-b border-white/10 flex-shrink-0">
             @if(isset($activeTenant) && $activeTenant?->logo)
                 <img src="{{ $activeTenant->logo_url }}" alt="Logo" class="w-9 h-9 rounded-xl object-cover shadow">
@@ -67,10 +67,10 @@
             </button>
         </div>
 
-        {{-- Navigasi --}}
+        {{-- ======= NAVIGASI ======= --}}
         <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
 
-            {{-- Dashboard --}}
+            {{-- Beranda --}}
             <a href="{{ route('dashboard') }}"
                class="nav-link {{ request()->routeIs('dashboard') ? 'nav-active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,11 +80,56 @@
                 <span>Beranda</span>
             </a>
 
-            {{-- Lembaga — hanya Super Admin --}}
+            {{-- ======================================================
+                 BLOK SUPER ADMIN
+                 Punya: Pilih Lembaga + Manajemen Lembaga.
+                 Data Master hanya muncul jika sudah ada lembaga aktif.
+            ====================================================== --}}
             @hasrole('Super Admin')
-            <div class="pt-4 pb-1 px-2">
+
+            {{-- Banner lembaga aktif Super Admin --}}
+            <div class="mt-3 mb-1 mx-0.5">
+                @if($activeTenant)
+                    <div class="bg-white/10 rounded-xl px-3 py-2">
+                        <p class="text-blue-300 text-xs font-semibold uppercase tracking-wider mb-1">Lembaga Aktif</p>
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-white text-xs font-bold truncate leading-tight">{{ $activeTenant->nama_lengkap }}</p>
+                            <a href="{{ route('tenant.switch.index') }}" title="Ganti lembaga"
+                               class="text-blue-300 hover:text-white flex-shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                @else
+                    <a href="{{ route('tenant.switch.index') }}"
+                       class="flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 rounded-xl px-3 py-2.5 transition-colors">
+                        <svg class="w-4 h-4 text-amber-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-amber-200 text-xs font-semibold leading-tight">Belum pilih lembaga</p>
+                            <p class="text-amber-300/70 text-xs leading-tight">Klik untuk memilih</p>
+                        </div>
+                    </a>
+                @endif
+            </div>
+
+            {{-- Administrasi --}}
+            <div class="pt-3 pb-1 px-2">
                 <p class="text-xs font-semibold text-blue-400/80 uppercase tracking-wider">Administrasi</p>
             </div>
+            <a href="{{ route('tenant.switch.index') }}"
+               class="nav-link {{ request()->routeIs('tenant.*') ? 'nav-active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                <span>Pilih Lembaga</span>
+            </a>
             <a href="{{ route('institutions.index') }}"
                class="nav-link {{ request()->routeIs('institutions.*') ? 'nav-active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,40 +138,39 @@
                 </svg>
                 <span>Manajemen Lembaga</span>
             </a>
-            @endhasrole
 
-            {{-- Data Master --}}
-            @hasanyrole('Super Admin|Admin Sekolah|Bendahara')
-            <div class="pt-4 pb-1 px-2">
+            {{-- Data Master Super Admin — hanya jika sudah pilih lembaga --}}
+            @if($activeTenant)
+            <div class="pt-3 pb-1 px-2">
                 <p class="text-xs font-semibold text-blue-400/80 uppercase tracking-wider">Data Master</p>
             </div>
-
-            @hasanyrole('Super Admin|Admin Sekolah')
-            <a href="#" class="nav-link {{ request()->routeIs('siswa.*') ? 'nav-active' : '' }}">
+            <a href="{{ route('school-years.index') }}"
+               class="nav-link {{ request()->routeIs('school-years.*') ? 'nav-active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
-                <span>Data Siswa</span>
+                <span>Tahun Ajaran</span>
             </a>
-            @endhasanyrole
-
-            @hasanyrole('Super Admin|Admin Sekolah')
-            <a href="#" class="nav-link {{ request()->routeIs('kelas.*') ? 'nav-active' : '' }}">
+            <a href="{{ route('classes.index') }}"
+               class="nav-link {{ request()->routeIs('classes.*') ? 'nav-active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
                 <span>Data Kelas</span>
             </a>
-            @endhasanyrole
-            @endhasanyrole
-
-            {{-- Keuangan --}}
-            <div class="pt-4 pb-1 px-2">
+            <a href="{{ route('students.index') }}"
+               class="nav-link {{ request()->routeIs('students.*') ? 'nav-active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <span>Data Siswa</span>
+            </a>
+            <div class="pt-3 pb-1 px-2">
                 <p class="text-xs font-semibold text-blue-400/80 uppercase tracking-wider">Keuangan</p>
             </div>
-
             <a href="#" class="nav-link {{ request()->routeIs('tagihan.*') ? 'nav-active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -134,7 +178,6 @@
                 </svg>
                 <span>Tagihan SPP</span>
             </a>
-
             <a href="#" class="nav-link {{ request()->routeIs('pembayaran.*') ? 'nav-active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -142,8 +185,6 @@
                 </svg>
                 <span>Pembayaran</span>
             </a>
-
-            @hasanyrole('Super Admin|Admin Sekolah|Bendahara')
             <a href="#" class="nav-link {{ request()->routeIs('kas.*') ? 'nav-active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -151,11 +192,84 @@
                 </svg>
                 <span>Kas</span>
             </a>
+            <div class="pt-3 pb-1 px-2">
+                <p class="text-xs font-semibold text-blue-400/80 uppercase tracking-wider">Laporan</p>
+            </div>
+            <a href="#" class="nav-link {{ request()->routeIs('laporan.*') ? 'nav-active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Laporan & Rekap</span>
+            </a>
+            @endif {{-- end $activeTenant --}}
+
+            @endhasrole
+            {{-- ====== END SUPER ADMIN BLOCK ====== --}}
+
+            {{-- ======================================================
+                 BLOK NON-SUPER ADMIN (Admin Sekolah, Bendahara, Siswa)
+            ====================================================== --}}
+            @unlessrole('Super Admin')
+
+            @hasanyrole('Admin Sekolah|Bendahara')
+            <div class="pt-3 pb-1 px-2">
+                <p class="text-xs font-semibold text-blue-400/80 uppercase tracking-wider">Data Master</p>
+            </div>
+            @hasrole('Admin Sekolah')
+            <a href="{{ route('school-years.index') }}"
+               class="nav-link {{ request()->routeIs('school-years.*') ? 'nav-active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span>Tahun Ajaran</span>
+            </a>
+            <a href="{{ route('classes.index') }}"
+               class="nav-link {{ request()->routeIs('classes.*') ? 'nav-active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span>Data Kelas</span>
+            </a>
+            <a href="{{ route('students.index') }}"
+               class="nav-link {{ request()->routeIs('students.*') ? 'nav-active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <span>Data Siswa</span>
+            </a>
+            @endrole
             @endhasanyrole
 
-            {{-- Laporan --}}
-            @hasanyrole('Super Admin|Admin Sekolah|Bendahara')
-            <div class="pt-4 pb-1 px-2">
+            <div class="pt-3 pb-1 px-2">
+                <p class="text-xs font-semibold text-blue-400/80 uppercase tracking-wider">Keuangan</p>
+            </div>
+            <a href="#" class="nav-link {{ request()->routeIs('tagihan.*') ? 'nav-active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                <span>Tagihan SPP</span>
+            </a>
+            <a href="#" class="nav-link {{ request()->routeIs('pembayaran.*') ? 'nav-active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <span>Pembayaran</span>
+            </a>
+            @hasanyrole('Admin Sekolah|Bendahara')
+            <a href="#" class="nav-link {{ request()->routeIs('kas.*') ? 'nav-active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span>Kas</span>
+            </a>
+            <div class="pt-3 pb-1 px-2">
                 <p class="text-xs font-semibold text-blue-400/80 uppercase tracking-wider">Laporan</p>
             </div>
             <a href="#" class="nav-link {{ request()->routeIs('laporan.*') ? 'nav-active' : '' }}">
@@ -167,9 +281,12 @@
             </a>
             @endhasanyrole
 
+            @endunlessrole
+            {{-- ====== END NON-SUPER ADMIN BLOCK ====== --}}
+
         </nav>
 
-        {{-- User info di bawah --}}
+        {{-- User info di bawah sidebar --}}
         <div class="border-t border-white/10 p-3 flex-shrink-0" x-data="{ dropup: false }" @click.outside="dropup = false">
             <div class="relative">
                 <button @click="dropup = !dropup"
@@ -239,20 +356,30 @@
                 @endif
             </div>
 
-            {{-- Greeting lembaga aktif --}}
+            {{-- Lembaga aktif + tanggal di header --}}
             <div class="hidden md:flex items-center gap-3">
                 @if(isset($activeTenant) && $activeTenant)
                     <div class="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-1.5">
                         <div class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>
-                        <span class="text-xs font-medium text-blue-700 truncate max-w-[160px]">
+                        <span class="text-xs font-medium text-blue-700 truncate max-w-[180px]">
                             {{ $activeTenant->nama_lengkap }}
                         </span>
+                        @hasrole('Super Admin')
+                        <a href="{{ route('tenant.switch.index') }}"
+                           class="text-blue-400 hover:text-blue-700 ml-1" title="Ganti lembaga">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                        </a>
+                        @endhasrole
                     </div>
                 @elseif(auth()->user()?->hasRole('Super Admin'))
-                    <div class="flex items-center gap-2 bg-purple-50 border border-purple-100 rounded-xl px-3 py-1.5">
-                        <div class="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0"></div>
-                        <span class="text-xs font-medium text-purple-700">Super Admin</span>
-                    </div>
+                    <a href="{{ route('tenant.switch.index') }}"
+                       class="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5 hover:bg-amber-100 transition-colors">
+                        <div class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></div>
+                        <span class="text-xs font-medium text-amber-700">Pilih Lembaga</span>
+                    </a>
                 @endif
 
                 {{-- Tanggal --}}

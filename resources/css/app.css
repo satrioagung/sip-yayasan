@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   SweetAlert2 Custom Style
+   ============================================================ */
+.swal-popup-custom {
+    border-radius: 1.25rem !important;
+    padding: 2rem 1.75rem 1.75rem !important;
+    font-family: 'Inter', sans-serif !important;
+    box-shadow: 0 25px 60px -10px rgba(0,0,0,.18) !important;
+}
+.swal-title-custom {
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+    padding: 0 0 0.25rem 0 !important;
+}
+.swal-confirm-custom {
+    border-radius: 0.75rem !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 0.625rem 1.5rem !important;
+    letter-spacing: 0.01em !important;
+}
+.swal-cancel-custom {
+    border-radius: 0.75rem !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    padding: 0.625rem 1.5rem !important;
+}
+.swal2-icon {
+    margin: 0 auto 1rem !important;
+}
+
+
 @layer components {
     /* =============================================
        Sidebar Navigation

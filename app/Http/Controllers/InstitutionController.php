@@ -24,9 +24,10 @@ class InstitutionController extends Controller
                 $q->where('name', 'ilike', "%{$request->search}%")
                   ->orWhere('code', 'ilike', "%{$request->search}%")
             )
-            ->when($request->status === 'aktif', fn ($q) => $q->aktif())
+            ->when($request->status === 'aktif',    fn ($q) => $q->aktif()->whereNull('deleted_at'))
             ->when($request->status === 'nonaktif', fn ($q) => $q->where('is_active', false)->whereNull('deleted_at'))
-            ->when($request->status === 'dihapus', fn ($q) => $q->onlyTrashed())
+            ->when($request->status === 'dihapus',  fn ($q) => $q->onlyTrashed())
+            ->when(! $request->status,              fn ($q) => $q->whereNull('deleted_at')) // default: sembunyikan trashed
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
@@ -67,6 +68,7 @@ class InstitutionController extends Controller
      */
     public function show(Institution $institution): View
     {
+        // Super Admin bisa lihat semua (ditangani policy before())
         $this->authorize('view', $institution);
         $institution->load('users');
         return view('institutions.show', compact('institution'));
@@ -91,7 +93,6 @@ class InstitutionController extends Controller
         $data['is_active'] = $request->boolean('is_active');
 
         if ($request->hasFile('logo')) {
-            // Hapus logo lama jika ada
             if ($institution->logo) {
                 Storage::disk('public')->delete($institution->logo);
             }
@@ -147,9 +148,11 @@ class InstitutionController extends Controller
 
     /**
      * Pulihkan lembaga yang dihapus.
+     * Menggunakan ID biasa (bukan route model binding) agar soft-deleted bisa ditemukan.
      */
-    public function pulihkan(Institution $institution): RedirectResponse
+    public function pulihkan(string $id): RedirectResponse
     {
+        $institution = Institution::withTrashed()->findOrFail((int) $id);
         $this->authorize('restore', $institution);
 
         $institution->restore();

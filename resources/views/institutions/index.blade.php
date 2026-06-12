@@ -134,7 +134,8 @@
                                         </svg>
                                     </a>
                                     {{-- Toggle Aktif --}}
-                                    <form method="POST" action="{{ route('institutions.toggleAktif', $item) }}">
+                                    <form method="POST" action="{{ route('institutions.toggleAktif', $item) }}"
+                                          data-confirm="{{ $item->is_active ? 'Nonaktifkan lembaga &quot;'.$item->name.'&quot;?' : 'Aktifkan lembaga &quot;'.$item->name.'&quot;?' }}">
                                         @csrf @method('PATCH')
                                         <button type="submit"
                                                 class="p-1.5 rounded-lg transition-colors {{ $item->is_active ? 'text-gray-400 hover:text-red-600 hover:bg-red-50' : 'text-gray-400 hover:text-green-600 hover:bg-green-50' }}"
@@ -152,7 +153,7 @@
                                     </form>
                                     {{-- Hapus --}}
                                     <form method="POST" action="{{ route('institutions.destroy', $item) }}"
-                                          onsubmit="return confirm('Yakin ingin menghapus lembaga \"{{ addslashes($item->name) }}\"?')">
+                                          data-confirm="Hapus lembaga &quot;{{ $item->name }}&quot;? Semua data terkait tidak dapat dikembalikan.">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                                 class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
@@ -163,7 +164,7 @@
                                     </form>
                                 @else
                                     {{-- Pulihkan --}}
-                                    <form method="POST" action="{{ route('institutions.pulihkan', $item) }}">
+                                    <form method="POST" action="{{ route('institutions.pulihkan', $item->id) }}">
                                         @csrf @method('PATCH')
                                         <button type="submit"
                                                 class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">

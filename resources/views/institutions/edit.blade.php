@@ -17,7 +17,7 @@
         {{-- Tombol Aksi --}}
         <div class="flex items-center justify-between pt-2">
             <form method="POST" action="{{ route('institutions.destroy', $institution) }}"
-                  onsubmit="return confirm('Yakin ingin menghapus lembaga \"{{ addslashes($institution->name) }}\"?')">
+                  data-confirm="Hapus lembaga &quot;{{ $institution->name }}&quot;? Semua data lembaga tidak dapat dikembalikan.">
                 @csrf @method('DELETE')
                 <button type="submit"
                         class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors">

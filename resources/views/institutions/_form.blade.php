@@ -138,11 +138,15 @@
                     </label>
                     <p class="text-xs text-gray-400 mt-1.5">JPG, PNG, atau WebP. Maks. 1 MB.</p>
                     @if($institution?->logo)
-                        <a href="{{ route('institutions.hapusLogo', $institution) }}"
-                           onclick="return confirm('Hapus logo lembaga ini?')"
-                           class="mt-2 inline-block text-xs text-red-500 hover:text-red-700">
-                            Hapus logo saat ini
-                        </a>
+                        <form method="POST" action="{{ route('institutions.hapusLogo', $institution) }}"
+                              data-confirm="Hapus logo lembaga ini? Tidak dapat dikembalikan."
+                              class="mt-2 inline-block">
+                            @csrf @method('DELETE')
+                            <button type="submit"
+                                    class="text-xs text-red-500 hover:text-red-700 underline">
+                                Hapus logo saat ini
+                            </button>
+                        </form>
                     @endif
                 </div>
             </div>
