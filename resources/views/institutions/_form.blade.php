@@ -195,14 +195,19 @@
 {{-- ===== BAGIAN 4: STATUS ===== --}}
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
     <h3 class="text-sm font-semibold text-gray-700 pb-3 border-b border-gray-100 mb-4">Status Lembaga</h3>
-    <label class="flex items-center gap-3 cursor-pointer">
-        <div class="relative" x-data="{ on: {{ old('is_active', $institution?->is_active ?? true) ? 'true' : 'false' }} }">
-            <input type="hidden" name="is_active" :value="on ? '1' : '0'">
+    @php $isActiveDefault = old('is_active', $institution?->is_active ?? true) ? '1' : '0'; @endphp
+    <label class="flex items-center gap-3 cursor-pointer"
+           x-data="{ on: {{ $isActiveDefault === '1' ? 'true' : 'false' }} }"
+           x-init="$watch('on', val => $refs.isActiveInput.value = val ? '1' : '0')">
+        <div class="relative">
+            <input type="hidden" name="is_active" x-ref="isActiveInput" value="{{ $isActiveDefault }}">
             <button type="button" @click="on = !on"
                     :class="on ? 'bg-blue-600' : 'bg-gray-200'"
-                    class="relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1">
-                <span :class="on ? 'translate-x-5' : 'translate-x-1'"
-                      class="inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform"></span>
+                    class="relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1">
+                <span
+                    :class="on ? 'translate-x-[23px]' : 'translate-x-[3px]'"
+                    class="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-200">
+                </span>
             </button>
         </div>
         <div>

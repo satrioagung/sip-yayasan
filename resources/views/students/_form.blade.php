@@ -123,15 +123,19 @@
 
     {{-- Status --}}
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        @php $aktifDefault = old('aktif', $student?->aktif ?? true) ? '1' : '0'; @endphp
         <label class="flex items-center gap-3 cursor-pointer"
-               x-data="{ on: {{ old('aktif', $student?->aktif ?? true) ? 'true' : 'false' }} }">
+               x-data="{ on: {{ $aktifDefault === '1' ? 'true' : 'false' }} }"
+               x-init="$watch('on', val => $refs.aktifInput.value = val ? '1' : '0')">
             <div class="relative">
-                <input type="hidden" name="aktif" :value="on ? '1' : '0'">
+                <input type="hidden" name="aktif" x-ref="aktifInput" value="{{ $aktifDefault }}">
                 <button type="button" @click="on = !on"
-                        :class="on ? 'bg-blue-600' : 'bg-gray-200'"
-                        class="w-10 h-5 rounded-full transition-colors focus:outline-none">
-                    <span :class="on ? 'translate-x-5' : 'translate-x-1'"
-                          class="inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform"></span>
+                    :class="on ? 'bg-blue-600' : 'bg-gray-200'"
+                    class="relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1">
+                    <span
+                        :class="on ? 'translate-x-[23px]' : 'translate-x-[3px]'"
+                        class="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-200">
+                    </span>
                 </button>
             </div>
             <div>

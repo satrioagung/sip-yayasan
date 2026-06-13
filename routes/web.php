@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\BillController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstitutionController;
+use App\Http\Controllers\PaymentTypeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SchoolYearController;
 use App\Http\Controllers\StudentController;
@@ -87,6 +89,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{student}/ubah', [StudentController::class, 'edit'])          ->name('edit');
         Route::put('/{student}',      [StudentController::class, 'update'])        ->name('update');
         Route::delete('/{student}',   [StudentController::class, 'destroy'])       ->name('destroy');
+    });
+
+    // Jenis Pembayaran
+    Route::prefix('jenis-pembayaran')->name('payment-types.')->group(function () {
+        Route::get('/',             [PaymentTypeController::class, 'index'])  ->name('index');
+        Route::get('/tambah',       [PaymentTypeController::class, 'create']) ->name('create');
+        Route::post('/',            [PaymentTypeController::class, 'store'])  ->name('store');
+        Route::get('/{paymentType}/ubah', [PaymentTypeController::class, 'edit'])   ->name('edit');
+        Route::put('/{paymentType}',      [PaymentTypeController::class, 'update']) ->name('update');
+        Route::delete('/{paymentType}',   [PaymentTypeController::class, 'destroy'])->name('destroy');
+    });
+
+    // Tagihan
+    Route::prefix('tagihan')->name('bills.')->group(function () {
+        Route::get('/',            [BillController::class, 'index'])        ->name('index');
+        Route::get('/generate',    [BillController::class, 'generateForm']) ->name('generate');
+        Route::post('/preview',    [BillController::class, 'preview'])      ->name('preview');
+        Route::post('/generate',   [BillController::class, 'generateStore'])->name('generate.store');
+        Route::delete('/{bill}',   [BillController::class, 'destroy'])      ->name('destroy');
     });
 
     // Profil Pengguna
