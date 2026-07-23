@@ -93,6 +93,43 @@ class PaymentTypeController extends Controller
             ->with('success', "Jenis pembayaran \"{$nama}\" berhasil dihapus.");
     }
 
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $institutionId = $this->institutionId($request);
+
+        $request->validate([
+            'ids'   => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:payment_types,id'],
+        ], [
+            'ids.required' => 'Pilih minimal 1 jenis pembayaran untuk dihapus.',
+        ]);
+
+        $dihapus  = 0;
+        $dilewati = 0;
+
+        foreach ($request->ids as $id) {
+            $type = PaymentType::forInstitution($institutionId)->find($id);
+            if (! $type) continue;
+
+            if ($type->bills()->exists()) {
+                $dilewati++;
+                continue;
+            }
+
+            $type->delete();
+            $dihapus++;
+        }
+
+        $pesan = "{$dihapus} jenis pembayaran berhasil dihapus";
+        if ($dilewati > 0) {
+            $pesan .= ", {$dilewati} dilewati karena sudah memiliki tagihan.";
+        } else {
+            $pesan .= '.';
+        }
+
+        return redirect()->route('payment-types.index')->with('success', $pesan);
+    }
+
     private function validatedData(Request $request, int $institutionId, ?int $excludeId = null): array
     {
         $uniqueKode = Rule::unique('payment_types', 'kode')

@@ -4,7 +4,9 @@
 @section('breadcrumb', 'Beranda / Keuangan / Jenis Pembayaran')
 
 @section('content')
-<div class="space-y-5">
+<div class="space-y-5"
+     x-data="paymentTypeTable()"
+     x-init="init()">
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -40,11 +42,35 @@
 
     {{-- Tabel --}}
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+
+        {{-- Bulk action bar --}}
+        <div x-show="selected.length > 0" x-transition
+             class="flex items-center gap-3 bg-blue-50 border-b border-blue-200 px-5 py-3">
+            <span class="text-sm font-semibold text-blue-700" x-text="`${selected.length} item dipilih`"></span>
+            <button type="button"
+                    class="ml-auto flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-800
+                           bg-white border border-red-200 rounded-xl px-3 py-1.5 hover:bg-red-50 transition-colors"
+                    @click="confirmBulkDelete()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Hapus Terpilih
+            </button>
+        </div>
+
         @if($types->count())
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <th class="px-4 py-3 w-10">
+                            <input type="checkbox"
+                                   class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                   :checked="isAllSelected()"
+                                   :indeterminate="isIndeterminate()"
+                                   @change="toggleAll($event.target.checked)">
+                        </th>
                         <th class="px-5 py-3.5 text-left">Jenis Pembayaran</th>
                         <th class="px-5 py-3.5 text-left hidden md:table-cell">Tipe</th>
                         <th class="px-5 py-3.5 text-right hidden sm:table-cell">Nominal Default</th>
@@ -56,7 +82,14 @@
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                     @foreach($types as $type)
-                    <tr class="hover:bg-gray-50/60 transition-colors">
+                    <tr class="hover:bg-gray-50/60 transition-colors"
+                        :class="selected.includes({{ $type->id }}) ? 'bg-blue-50/60' : ''">
+                        <td class="px-4 py-4">
+                            <input type="checkbox"
+                                   class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                   :checked="selected.includes({{ $type->id }})"
+                                   @change="toggleOne({{ $type->id }}, $event.target.checked)">
+                        </td>
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -153,5 +186,73 @@
         </div>
         @endif
     </div>
+
+    {{-- Hidden bulk delete form --}}
+    <form id="bulk-delete-form" method="POST" action="{{ route('payment-types.bulkDestroy') }}" class="hidden">
+        @csrf @method('DELETE')
+    </form>
+
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function paymentTypeTable() {
+    return {
+        selected: [],
+
+        init() {
+            this.$watch('selected', () => {
+                const cb = document.querySelector('thead input[type=checkbox]');
+                if (cb) cb.indeterminate = this.isIndeterminate();
+            });
+        },
+
+        toggleAll(checked) {
+            const ids = @json($types->pluck('id'));
+            this.selected = checked ? [...ids] : [];
+        },
+
+        toggleOne(id, checked) {
+            if (checked) {
+                if (!this.selected.includes(id)) this.selected.push(id);
+            } else {
+                this.selected = this.selected.filter(i => i !== id);
+            }
+        },
+
+        isAllSelected() {
+            const ids = @json($types->pluck('id'));
+            return ids.length > 0 && ids.every(id => this.selected.includes(id));
+        },
+
+        isIndeterminate() {
+            const ids = @json($types->pluck('id'));
+            const sel = ids.filter(id => this.selected.includes(id));
+            return sel.length > 0 && sel.length < ids.length;
+        },
+
+        async confirmBulkDelete() {
+            const n = this.selected.length;
+            const result = await SwalKonfirm({
+                title: `Hapus ${n} jenis pembayaran?`,
+                text: 'Jenis pembayaran yang sudah memiliki tagihan akan dilewati dan tidak akan dihapus.',
+                confirmButtonText: `Ya, hapus ${n} item`,
+            });
+
+            if (result.isConfirmed) {
+                const form = document.getElementById('bulk-delete-form');
+                this.selected.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ids[]';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+                form.submit();
+            }
+        },
+    }
+}
+</script>
+@endpush

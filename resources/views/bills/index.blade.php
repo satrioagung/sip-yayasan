@@ -4,7 +4,9 @@
 @section('breadcrumb', 'Beranda / Keuangan / Tagihan')
 
 @section('content')
-<div class="space-y-5">
+<div class="space-y-5"
+     x-data="billsTable()"
+     x-init="init()">
 
     {{-- ========== STAT CARDS ========== --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -67,87 +69,165 @@
 
             {{-- Baris 2: Filter dropdown --}}
             <div class="flex flex-wrap gap-2">
-                <div class="relative">
-                    <select name="payment_type_id"
-                            style="-webkit-appearance:none;appearance:none"
-                            class="text-sm border border-gray-200 rounded-xl pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">Semua Jenis</option>
+
+                {{-- Jenis Pembayaran --}}
+                @php
+                    $selPt = request('payment_type_id');
+                    $labelPt = $selPt ? ($paymentTypes->firstWhere('id', $selPt)?->nama ?? 'Semua Jenis') : 'Semua Jenis';
+                @endphp
+                <div class="relative"
+                    x-data="{ open: false, selected: '{{ $selPt }}', label: '{{ $labelPt }}' }"
+                    @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                        class="flex items-center gap-2 text-sm border border-gray-200 rounded-xl pl-3 pr-3 py-2
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white whitespace-nowrap">
+                        <span x-text="label"></span>
+                        <svg class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                            :class="open ? 'rotate-180' : ''"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="open" x-transition
+                        class="absolute z-20 mt-1 min-w-full bg-white border border-gray-200 rounded-xl shadow-lg py-1 text-sm">
+                        <button type="button"
+                            @click="selected = ''; label = 'Semua Jenis'; open = false"
+                            class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">Semua Jenis</button>
                         @foreach($paymentTypes as $pt)
-                            <option value="{{ $pt->id }}" {{ request('payment_type_id') == $pt->id ? 'selected' : '' }}>
-                                {{ $pt->nama }}
-                            </option>
+                            <button type="button"
+                                @click="selected = '{{ $pt->id }}'; label = '{{ $pt->nama }}'; open = false"
+                                class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">{{ $pt->nama }}</button>
                         @endforeach
-                    </select>
-                    <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
+                    </div>
+                    <input type="hidden" name="payment_type_id" :value="selected">
                 </div>
 
-                <div class="relative">
-                    <select name="school_year_id"
-                            style="-webkit-appearance:none;appearance:none"
-                            class="text-sm border border-gray-200 rounded-xl pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">Semua Tahun Ajaran</option>
+                {{-- Tahun Ajaran --}}
+                @php
+                    $selSy = request('school_year_id');
+                    $labelSy = $selSy ? ($schoolYears->firstWhere('id', $selSy)?->nama ?? 'Semua Tahun Ajaran') : 'Semua Tahun Ajaran';
+                @endphp
+                <div class="relative"
+                    x-data="{ open: false, selected: '{{ $selSy }}', label: '{{ $labelSy }}' }"
+                    @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                        class="flex items-center gap-2 text-sm border border-gray-200 rounded-xl pl-3 pr-3 py-2
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white whitespace-nowrap">
+                        <span x-text="label"></span>
+                        <svg class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                            :class="open ? 'rotate-180' : ''"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="open" x-transition
+                        class="absolute z-20 mt-1 min-w-full bg-white border border-gray-200 rounded-xl shadow-lg py-1 text-sm">
+                        <button type="button"
+                            @click="selected = ''; label = 'Semua Tahun Ajaran'; open = false"
+                            class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">Semua Tahun Ajaran</button>
                         @foreach($schoolYears as $sy)
-                            <option value="{{ $sy->id }}" {{ request('school_year_id') == $sy->id ? 'selected' : '' }}>
-                                {{ $sy->nama }}
-                            </option>
+                            <button type="button"
+                                @click="selected = '{{ $sy->id }}'; label = '{{ $sy->nama }}'; open = false"
+                                class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">{{ $sy->nama }}</button>
                         @endforeach
-                    </select>
-                    <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
+                    </div>
+                    <input type="hidden" name="school_year_id" :value="selected">
                 </div>
 
-                <div class="relative">
-                    <select name="class_id"
-                            style="-webkit-appearance:none;appearance:none"
-                            class="text-sm border border-gray-200 rounded-xl pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">Semua Kelas</option>
+                {{-- Kelas --}}
+                @php
+                    $selKelas = request('class_id');
+                    $labelKelas = $selKelas ? ($kelas->firstWhere('id', $selKelas)?->nama_kelas ?? 'Semua Kelas') : 'Semua Kelas';
+                @endphp
+                <div class="relative"
+                    x-data="{ open: false, selected: '{{ $selKelas }}', label: '{{ $labelKelas }}' }"
+                    @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                        class="flex items-center gap-2 text-sm border border-gray-200 rounded-xl pl-3 pr-3 py-2
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white whitespace-nowrap">
+                        <span x-text="label"></span>
+                        <svg class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                            :class="open ? 'rotate-180' : ''"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="open" x-transition
+                        class="absolute z-20 mt-1 min-w-full bg-white border border-gray-200 rounded-xl shadow-lg py-1 text-sm">
+                        <button type="button"
+                            @click="selected = ''; label = 'Semua Kelas'; open = false"
+                            class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">Semua Kelas</button>
                         @foreach($kelas as $k)
-                            <option value="{{ $k->id }}" {{ request('class_id') == $k->id ? 'selected' : '' }}>
-                                {{ $k->nama_kelas }}
-                            </option>
+                            <button type="button"
+                                @click="selected = '{{ $k->id }}'; label = '{{ $k->nama_kelas }}'; open = false"
+                                class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">{{ $k->nama_kelas }}</button>
                         @endforeach
-                    </select>
-                    <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
+                    </div>
+                    <input type="hidden" name="class_id" :value="selected">
                 </div>
 
-                <div class="relative">
-                    <select name="status"
-                            style="-webkit-appearance:none;appearance:none"
-                            class="text-sm border border-gray-200 rounded-xl pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">Semua Status</option>
+                {{-- Status --}}
+                @php
+                    $selStatus = request('status');
+                    $labelStatus = $selStatus ? (\App\Models\Bill::$statusConfig[$selStatus]['label'] ?? 'Semua Status') : 'Semua Status';
+                @endphp
+                <div class="relative"
+                    x-data="{ open: false, selected: '{{ $selStatus }}', label: '{{ $labelStatus }}' }"
+                    @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                        class="flex items-center gap-2 text-sm border border-gray-200 rounded-xl pl-3 pr-3 py-2
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white whitespace-nowrap">
+                        <span x-text="label"></span>
+                        <svg class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                            :class="open ? 'rotate-180' : ''"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="open" x-transition
+                        class="absolute z-20 mt-1 min-w-full bg-white border border-gray-200 rounded-xl shadow-lg py-1 text-sm">
+                        <button type="button"
+                            @click="selected = ''; label = 'Semua Status'; open = false"
+                            class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">Semua Status</button>
                         @foreach(\App\Models\Bill::$statusConfig as $val => $cfg)
-                            <option value="{{ $val }}" {{ request('status') === $val ? 'selected' : '' }}>
-                                {{ $cfg['label'] }}
-                            </option>
+                            <button type="button"
+                                @click="selected = '{{ $val }}'; label = '{{ $cfg['label'] }}'; open = false"
+                                class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">{{ $cfg['label'] }}</button>
                         @endforeach
-                    </select>
-                    <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
+                    </div>
+                    <input type="hidden" name="status" :value="selected">
                 </div>
 
-                <div class="relative">
-                    <select name="bulan"
-                            style="-webkit-appearance:none;appearance:none"
-                            class="text-sm border border-gray-200 rounded-xl pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">Semua Bulan</option>
-                        @foreach(\App\Models\Bill::$bulanLabels as $num => $label)
-                            <option value="{{ $num }}" {{ request('bulan') == $num ? 'selected' : '' }}>{{ $label }}</option>
+                {{-- Bulan --}}
+                @php
+                    $selBulan = request('bulan');
+                    $labelBulan = $selBulan ? (\App\Models\Bill::$bulanLabels[$selBulan] ?? 'Semua Bulan') : 'Semua Bulan';
+                @endphp
+                <div class="relative"
+                    x-data="{ open: false, selected: '{{ $selBulan }}', label: '{{ $labelBulan }}' }"
+                    @click.outside="open = false">
+                    <button type="button" @click="open = !open"
+                        class="flex items-center gap-2 text-sm border border-gray-200 rounded-xl pl-3 pr-3 py-2
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white whitespace-nowrap">
+                        <span x-text="label"></span>
+                        <svg class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                            :class="open ? 'rotate-180' : ''"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="open" x-transition
+                        class="absolute z-20 mt-1 min-w-full bg-white border border-gray-200 rounded-xl shadow-lg py-1 text-sm">
+                        <button type="button"
+                            @click="selected = ''; label = 'Semua Bulan'; open = false"
+                            class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">Semua Bulan</button>
+                        @foreach(\App\Models\Bill::$bulanLabels as $num => $bulanLabel)
+                            <button type="button"
+                                @click="selected = '{{ $num }}'; label = '{{ $bulanLabel }}'; open = false"
+                                class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700">{{ $bulanLabel }}</button>
                         @endforeach
-                    </select>
-                    <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
+                    </div>
+                    <input type="hidden" name="bulan" :value="selected">
                 </div>
 
                 <input type="number" name="tahun" value="{{ request('tahun') }}"
@@ -164,10 +244,34 @@
 
     {{-- ========== TABEL TAGIHAN ========== --}}
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+
+        {{-- Bulk action bar --}}
+        <div x-show="selected.length > 0" x-transition
+             class="flex items-center gap-3 bg-blue-50 border-b border-blue-200 px-5 py-3">
+            <span class="text-sm font-semibold text-blue-700" x-text="`${selected.length} tagihan dipilih`"></span>
+            <button type="button"
+                    class="ml-auto flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-800
+                           bg-white border border-red-200 rounded-xl px-3 py-1.5 hover:bg-red-50 transition-colors"
+                    @click="confirmBulkDelete()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Hapus Terpilih
+            </button>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <th class="px-4 py-3 w-10">
+                            <input type="checkbox"
+                                   class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                   :checked="isAllSelected()"
+                                   :indeterminate="isIndeterminate()"
+                                   @change="toggleAll($event.target.checked)">
+                        </th>
                         <th class="px-5 py-3.5 text-left">Siswa</th>
                         <th class="px-5 py-3.5 text-left hidden md:table-cell">Jenis Pembayaran</th>
                         <th class="px-5 py-3.5 text-left hidden lg:table-cell">Periode</th>
@@ -181,7 +285,18 @@
                 <tbody class="divide-y divide-gray-50">
                     @forelse($bills as $bill)
                     @php $sc = $bill->status_config; @endphp
-                    <tr class="hover:bg-gray-50/60 transition-colors">
+                    <tr class="hover:bg-gray-50/60 transition-colors"
+                        :class="selected.includes({{ $bill->id }}) ? 'bg-blue-50/60' : ''">
+
+                        {{-- Checkbox --}}
+                        <td class="px-4 py-3.5">
+                            <input type="checkbox"
+                                   class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                   :disabled="{{ $bill->nominal_terbayar }} > 0"
+                                   :class="{{ $bill->nominal_terbayar }} > 0 ? 'opacity-30 cursor-not-allowed' : ''"
+                                   :checked="selected.includes({{ $bill->id }})"
+                                   @change="toggleOne({{ $bill->id }}, $event.target.checked)">
+                        </td>
 
                         {{-- Siswa --}}
                         <td class="px-5 py-3.5">
@@ -240,6 +355,22 @@
                         {{-- Aksi --}}
                         <td class="px-5 py-3.5 text-right">
                             <div class="flex items-center justify-end gap-1">
+                                {{-- Tombol Bayar (hanya jika belum lunas) --}}
+                                @if($bill->status !== 'lunas')
+                                <a href="{{ route('payments.create', ['bill_id' => $bill->id]) }}"
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-green-50 text-green-700 hover:bg-green-100 rounded-lg transition-colors"
+                                   title="Bayar">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                    Bayar
+                                </a>
+                                @else
+                                <span class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-green-100 text-green-700 rounded-lg">
+                                    ✓ Lunas
+                                </span>
+                                @endif
                                 {{-- Hapus hanya jika belum ada pembayaran --}}
                                 @if($bill->nominal_terbayar === 0)
                                 <form method="POST" action="{{ route('bills.destroy', $bill) }}"
@@ -266,7 +397,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-16 text-center">
+                        <td colspan="9" class="px-6 py-16 text-center">
                             <div class="flex flex-col items-center gap-3">
                                 <div class="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center">
                                     <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -323,5 +454,74 @@
         </div>
         @endif
     </div>
+
+    {{-- Hidden bulk delete form --}}
+    <form id="bulk-delete-form" method="POST" action="{{ route('bills.bulkDestroy') }}" class="hidden">
+        @csrf @method('DELETE')
+    </form>
+
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function billsTable() {
+    return {
+        selected: [],
+
+        init() {
+            this.$watch('selected', () => {
+                const cb = document.querySelector('thead input[type=checkbox]');
+                if (cb) cb.indeterminate = this.isIndeterminate();
+            });
+        },
+
+        toggleAll(checked) {
+            // Hanya tagihan yang belum ada pembayaran yang bisa dipilih
+            const ids = @json($bills->filter(fn($b) => $b->nominal_terbayar == 0)->pluck('id')->values());
+            this.selected = checked ? [...ids] : [];
+        },
+
+        toggleOne(id, checked) {
+            if (checked) {
+                if (!this.selected.includes(id)) this.selected.push(id);
+            } else {
+                this.selected = this.selected.filter(i => i !== id);
+            }
+        },
+
+        isAllSelected() {
+            const ids = @json($bills->filter(fn($b) => $b->nominal_terbayar == 0)->pluck('id')->values());
+            return ids.length > 0 && ids.every(id => this.selected.includes(id));
+        },
+
+        isIndeterminate() {
+            const ids = @json($bills->filter(fn($b) => $b->nominal_terbayar == 0)->pluck('id')->values());
+            const sel = ids.filter(id => this.selected.includes(id));
+            return sel.length > 0 && sel.length < ids.length;
+        },
+
+        async confirmBulkDelete() {
+            const n = this.selected.length;
+            const result = await SwalKonfirm({
+                title: `Hapus ${n} tagihan?`,
+                text: 'Tagihan yang sudah memiliki pembayaran tidak akan dihapus.',
+                confirmButtonText: `Ya, hapus ${n} tagihan`,
+            });
+
+            if (result.isConfirmed) {
+                const form = document.getElementById('bulk-delete-form');
+                this.selected.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ids[]';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+                form.submit();
+            }
+        },
+    }
+}
+</script>
+@endpush

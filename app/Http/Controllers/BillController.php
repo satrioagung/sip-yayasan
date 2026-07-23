@@ -123,7 +123,7 @@ class BillController extends Controller
             'tahun'           => ['required', 'integer', 'min:2000', 'max:2100'],
             'bulan'           => ['nullable', 'integer', 'min:1', 'max:12'],
             'nominal'         => ['required', 'integer', 'min:1'],
-            'jatuh_tempo'     => ['nullable', 'date_format:d/m/Y'],
+            'jatuh_tempo'     => ['nullable', 'date'],
             'keterangan'      => ['nullable', 'string', 'max:500'],
             'scope'           => ['required', 'in:semua,kelas,siswa'],
             'class_id'        => ['nullable', 'exists:classes,id'],
@@ -170,6 +170,44 @@ class BillController extends Controller
         $bill->delete();
 
         return back()->with('success', 'Tagihan berhasil dihapus.');
+    }
+
+    /** Bulk delete tagihan */
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $institutionId = $this->institutionId($request);
+
+        $request->validate([
+            'ids'   => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:bills,id'],
+        ], [
+            'ids.required' => 'Pilih minimal 1 tagihan untuk dihapus.',
+        ]);
+
+        $dihapus  = 0;
+        $dilewati = 0;
+
+        foreach ($request->ids as $id) {
+            $bill = Bill::forInstitution($institutionId)->find($id);
+            if (! $bill) continue;
+
+            if ($bill->nominal_terbayar > 0) {
+                $dilewati++;
+                continue;
+            }
+
+            $bill->delete();
+            $dihapus++;
+        }
+
+        $pesan = "{$dihapus} tagihan berhasil dihapus";
+        if ($dilewati > 0) {
+            $pesan .= ", {$dilewati} dilewati karena sudah memiliki pembayaran.";
+        } else {
+            $pesan .= '.';
+        }
+
+        return redirect()->route('bills.index')->with('success', $pesan);
     }
 
     private function authorizeBill(Bill $bill, Request $request): void

@@ -4,8 +4,10 @@ use App\Http\Controllers\BillController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstitutionController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentTypeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReceiptTemplateController;
 use App\Http\Controllers\SchoolYearController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TenantSwitchController;
@@ -77,37 +79,61 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Siswa
     Route::prefix('siswa')->name('students.')->group(function () {
-        Route::get('/',               [StudentController::class, 'index'])         ->name('index');
-        Route::get('/tambah',         [StudentController::class, 'create'])        ->name('create');
-        Route::post('/',              [StudentController::class, 'store'])         ->name('store');
-        Route::get('/export',         [StudentController::class, 'export'])        ->name('export');
-        Route::get('/template',       [StudentController::class, 'template'])      ->name('template');
-        Route::get('/import',         [StudentController::class, 'importForm'])    ->name('import.form');
-        Route::post('/import',        [StudentController::class, 'importProcess']) ->name('import.process');
-        Route::delete('/bulk-delete', [StudentController::class, 'bulkDestroy'])   ->name('bulkDestroy');
-        Route::get('/{student}',      [StudentController::class, 'show'])          ->name('show');
-        Route::get('/{student}/ubah', [StudentController::class, 'edit'])          ->name('edit');
-        Route::put('/{student}',      [StudentController::class, 'update'])        ->name('update');
-        Route::delete('/{student}',   [StudentController::class, 'destroy'])       ->name('destroy');
+        Route::get('/',                         [StudentController::class, 'index'])         ->name('index');
+        Route::get('/tambah',                   [StudentController::class, 'create'])        ->name('create');
+        Route::post('/',                        [StudentController::class, 'store'])         ->name('store');
+        Route::get('/export',                   [StudentController::class, 'export'])        ->name('export');
+        Route::get('/template',                 [StudentController::class, 'template'])      ->name('template');
+        Route::get('/import',                   [StudentController::class, 'importForm'])    ->name('import.form');
+        Route::post('/import/preview',          [StudentController::class, 'importPreview']) ->name('import.preview');
+        Route::post('/import',                  [StudentController::class, 'importProcess']) ->name('import.process');
+        Route::delete('/bulk-delete',           [StudentController::class, 'bulkDestroy'])   ->name('bulkDestroy');
+        Route::get('/{student}',                [StudentController::class, 'show'])          ->name('show');
+        Route::get('/{student}/ubah',           [StudentController::class, 'edit'])          ->name('edit');
+        Route::put('/{student}',                [StudentController::class, 'update'])        ->name('update');
+        Route::delete('/{student}',             [StudentController::class, 'destroy'])       ->name('destroy');
     });
 
     // Jenis Pembayaran
     Route::prefix('jenis-pembayaran')->name('payment-types.')->group(function () {
-        Route::get('/',             [PaymentTypeController::class, 'index'])  ->name('index');
-        Route::get('/tambah',       [PaymentTypeController::class, 'create']) ->name('create');
-        Route::post('/',            [PaymentTypeController::class, 'store'])  ->name('store');
-        Route::get('/{paymentType}/ubah', [PaymentTypeController::class, 'edit'])   ->name('edit');
-        Route::put('/{paymentType}',      [PaymentTypeController::class, 'update']) ->name('update');
-        Route::delete('/{paymentType}',   [PaymentTypeController::class, 'destroy'])->name('destroy');
+        Route::get('/',                   [PaymentTypeController::class, 'index'])       ->name('index');
+        Route::get('/tambah',             [PaymentTypeController::class, 'create'])      ->name('create');
+        Route::post('/',                  [PaymentTypeController::class, 'store'])       ->name('store');
+        Route::delete('/bulk-delete',     [PaymentTypeController::class, 'bulkDestroy'])->name('bulkDestroy');
+        Route::get('/{paymentType}/ubah', [PaymentTypeController::class, 'edit'])        ->name('edit');
+        Route::put('/{paymentType}',      [PaymentTypeController::class, 'update'])      ->name('update');
+        Route::delete('/{paymentType}',   [PaymentTypeController::class, 'destroy'])     ->name('destroy');
     });
 
     // Tagihan
     Route::prefix('tagihan')->name('bills.')->group(function () {
-        Route::get('/',            [BillController::class, 'index'])        ->name('index');
-        Route::get('/generate',    [BillController::class, 'generateForm']) ->name('generate');
-        Route::post('/preview',    [BillController::class, 'preview'])      ->name('preview');
-        Route::post('/generate',   [BillController::class, 'generateStore'])->name('generate.store');
-        Route::delete('/{bill}',   [BillController::class, 'destroy'])      ->name('destroy');
+        Route::get('/',              [BillController::class, 'index'])        ->name('index');
+        Route::get('/generate',      [BillController::class, 'generateForm']) ->name('generate');
+        Route::post('/preview',      [BillController::class, 'preview'])      ->name('preview');
+        Route::post('/generate',     [BillController::class, 'generateStore'])->name('generate.store');
+        Route::delete('/bulk-delete',[BillController::class, 'bulkDestroy'])  ->name('bulkDestroy');
+        Route::delete('/{bill}',     [BillController::class, 'destroy'])      ->name('destroy');
+    });
+
+    // Pembayaran
+    Route::prefix('pembayaran')->name('payments.')->group(function () {
+        Route::get('/',                   [PaymentController::class, 'index'])      ->name('index');
+        Route::get('/tambah',             [PaymentController::class, 'create'])     ->name('create');
+        Route::post('/',                  [PaymentController::class, 'store'])      ->name('store');
+        Route::get('/{payment}',          [PaymentController::class, 'show'])       ->name('show');
+        Route::get('/{payment}/struk',    [PaymentController::class, 'cetakStruk']) ->name('struk');
+        Route::delete('/{payment}',       [PaymentController::class, 'destroy'])    ->name('destroy');
+    });
+
+    // Template Struk
+    Route::prefix('template-struk')->name('receipt-templates.')->group(function () {
+        Route::get('/',                             [ReceiptTemplateController::class, 'index'])  ->name('index');
+        Route::get('/tambah',                       [ReceiptTemplateController::class, 'create']) ->name('create');
+        Route::post('/',                            [ReceiptTemplateController::class, 'store'])  ->name('store');
+        Route::get('/{receiptTemplate}/ubah',       [ReceiptTemplateController::class, 'edit'])   ->name('edit');
+        Route::put('/{receiptTemplate}',            [ReceiptTemplateController::class, 'update']) ->name('update');
+        Route::delete('/{receiptTemplate}',         [ReceiptTemplateController::class, 'destroy'])->name('destroy');
+        Route::get('/{receiptTemplate}/preview',    [ReceiptTemplateController::class, 'preview'])->name('preview');
     });
 
     // Profil Pengguna

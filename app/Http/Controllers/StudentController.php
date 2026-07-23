@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Exports\StudentsExport;
 use App\Exports\StudentsTemplateExport;
 use App\Imports\StudentsImport;
+use App\Imports\StudentsPreviewImport;
 use App\Models\SchoolClass;
 use App\Models\SchoolYear;
 use App\Models\Student;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -220,6 +222,31 @@ class StudentController extends Controller
         $kelas = SchoolClass::where('institution_id', $institutionId)
             ->aktif()->orderBy('nama_kelas')->get();
         return view('students.import', compact('kelas'));
+    }
+
+    /** Preview import Excel — dry-run, tidak simpan ke DB */
+    public function importPreview(Request $request): JsonResponse
+    {
+        $institutionId = $this->institutionId($request);
+
+        $request->validate([
+            'file'     => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:5120'],
+            'class_id' => ['nullable', 'exists:classes,id'],
+        ], [
+            'file.required' => 'File Excel wajib diunggah.',
+            'file.mimes'    => 'File harus berformat XLSX, XLS, atau CSV.',
+            'file.max'      => 'Ukuran file maksimal 5 MB.',
+        ]);
+
+        $preview = new StudentsPreviewImport($institutionId, $request->class_id);
+        Excel::import($preview, $request->file('file'));
+
+        return response()->json([
+            'total'   => $preview->total,
+            'valid'   => $preview->valid,
+            'invalid' => $preview->invalid,
+            'rows'    => $preview->rows,
+        ]);
     }
 
     /** Proses import Excel */

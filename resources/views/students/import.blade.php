@@ -5,7 +5,7 @@
 @section('breadcrumb', 'Beranda / Data Siswa / Import')
 
 @section('content')
-<div class="max-w-2xl mx-auto space-y-5">
+<div class="max-w-3xl mx-auto space-y-5">
 
     {{-- Panduan --}}
     <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
@@ -74,7 +74,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    <p class="text-sm font-medium text-gray-700">Drag & drop atau klik untuk memilih file</p>
+                    <p class="text-sm font-medium text-gray-700">Drag &amp; drop atau klik untuk memilih file</p>
                     <p class="text-xs text-gray-400 mt-1">XLSX, XLS, CSV · Maks. 5 MB</p>
                 </div>
 
@@ -93,13 +93,98 @@
 
             @error('file') <p class="mt-2 text-xs text-red-600">{{ $message }}</p> @enderror
 
+            {{-- Loading preview --}}
+            <div x-show="loadingPreview" class="mt-4 flex items-center gap-2 text-sm text-blue-600">
+                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                Membaca file dan menganalisis data...
+            </div>
+
+            {{-- Preview Table --}}
+            <div x-show="previewData" x-cloak class="mt-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-semibold text-gray-700">Preview Data</h4>
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="flex items-center gap-1.5 text-green-700 font-medium">
+                            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                            <span x-text="previewData?.valid + ' valid'"></span>
+                        </span>
+                        <span x-show="(previewData?.invalid ?? 0) > 0"
+                              class="flex items-center gap-1.5 text-red-600 font-medium">
+                            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                            <span x-text="previewData?.invalid + ' tidak valid'"></span>
+                        </span>
+                        <span class="text-gray-500" x-text="'Total: ' + previewData?.total + ' baris'"></span>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-gray-200 overflow-hidden">
+                    <div class="overflow-x-auto max-h-72">
+                        <table class="w-full text-xs">
+                            <thead class="bg-gray-50 border-b border-gray-200 sticky top-0">
+                                <tr class="text-gray-500 font-semibold uppercase tracking-wider">
+                                    <th class="px-3 py-2.5 text-left w-10">#</th>
+                                    <th class="px-3 py-2.5 text-left">NIS</th>
+                                    <th class="px-3 py-2.5 text-left">Nama Lengkap</th>
+                                    <th class="px-3 py-2.5 text-center">JK</th>
+                                    <th class="px-3 py-2.5 text-left">Kelas</th>
+                                    <th class="px-3 py-2.5 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <template x-for="row in previewData?.rows ?? []" :key="row.baris">
+                                    <tr :class="row.valid ? 'hover:bg-gray-50' : 'bg-red-50'">
+                                        <td class="px-3 py-2 text-gray-400" x-text="row.baris"></td>
+                                        <td class="px-3 py-2 font-mono text-gray-700" x-text="row.nis"></td>
+                                        <td class="px-3 py-2 font-medium text-gray-800" x-text="row.nama"></td>
+                                        <td class="px-3 py-2 text-center text-gray-600" x-text="row.jk"></td>
+                                        <td class="px-3 py-2 text-gray-500" x-text="row.kelas"></td>
+                                        <td class="px-3 py-2 text-center">
+                                            <template x-if="!row.valid">
+                                                <span class="inline-flex items-center gap-1 text-red-600 font-semibold">
+                                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                                    <span x-text="row.error"></span>
+                                                </span>
+                                            </template>
+                                            <template x-if="row.valid && row.status === 'update'">
+                                                <span class="inline-flex items-center gap-1 text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded-full">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                    Update
+                                                </span>
+                                            </template>
+                                            <template x-if="row.valid && row.status === 'baru'">
+                                                <span class="inline-flex items-center gap-1 text-green-700 font-medium bg-green-50 px-2 py-0.5 rounded-full">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                    Baru
+                                                </span>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Warning jika ada baris invalid --}}
+                <p x-show="(previewData?.invalid ?? 0) > 0"
+                   class="mt-2.5 text-xs text-red-600 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    Baris yang tidak valid akan dilewati saat import.
+                </p>
+            </div>
+
             <div class="flex justify-end gap-3 mt-6">
                 <a href="{{ route('students.index') }}" class="btn-secondary">Batal</a>
-                <button type="submit" class="btn-primary" :disabled="!file" :class="!file ? 'opacity-50 cursor-not-allowed' : ''">
+                <button type="submit" class="btn-primary"
+                        :disabled="!previewData || previewData.valid === 0"
+                        :class="(!previewData || previewData.valid === 0) ? 'opacity-50 cursor-not-allowed' : ''">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                     </svg>
-                    Proses Import
+                    <span x-text="previewData ? `Proses Import (${previewData.valid} siswa)` : 'Proses Import'"></span>
                 </button>
             </div>
         </form>
@@ -114,6 +199,8 @@ function importApp() {
         file: null,
         dragging: false,
         fileSize: '',
+        loadingPreview: false,
+        previewData: null,
 
         handleFile(event) {
             const f = event.target.files[0];
@@ -133,12 +220,51 @@ function importApp() {
             this.file = f;
             const kb = (f.size / 1024).toFixed(1);
             this.fileSize = kb < 1024 ? kb + ' KB' : (f.size / 1024 / 1024).toFixed(2) + ' MB';
+            this.previewData = null;
+            this.fetchPreview();
         },
 
         clearFile() {
             this.file = null;
             this.$refs.fileInput.value = '';
-        }
+            this.previewData = null;
+        },
+
+        async fetchPreview() {
+            if (!this.file) return;
+
+            this.loadingPreview = true;
+            this.previewData = null;
+
+            const formData = new FormData();
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+            formData.append('file', this.file);
+
+            const classId = document.getElementById('class_id')?.value;
+            if (classId) formData.append('class_id', classId);
+
+            try {
+                const res = await fetch('{{ route("students.import.preview") }}', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: formData,
+                });
+
+                if (res.ok) {
+                    this.previewData = await res.json();
+                } else {
+                    const err = await res.json();
+                    alert(err.message ?? 'Gagal membaca file. Pastikan format file benar.');
+                    this.clearFile();
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Terjadi kesalahan saat membaca file.');
+                this.clearFile();
+            } finally {
+                this.loadingPreview = false;
+            }
+        },
     }
 }
 </script>
